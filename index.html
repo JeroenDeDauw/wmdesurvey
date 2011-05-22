@@ -1,0 +1,112 @@
+<html>
+
+<head>
+
+<script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
+
+</head>
+
+<body>
+
+<style type="text/css">
+
+#centralNotice.collapsed #editorSurvey2011 {
+  display: none;
+ }
+
+#editorSurvey2011 {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 0.5em !important;
+  background-color: #d7e4fa;
+  background-repeat: repeat-x;
+  border: solid 1px #a7d7f9; 
+  display: none;
+}
+
+#editorSurvey2011-content {
+  position:relative;
+  padding: 30px 80px;
+  text-align: center;
+}
+
+#editorSurvey2011-logo {
+  position: absolute;
+  top: 20px;
+  left: 25px;
+  background-image: url(http://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Wikimedia_logo_text_RGB.svg/60px-Wikimedia_logo_text_RGB.svg.png);
+  height: 60px;
+  width: 60px;
+  background-repeat: no-repeat;
+}
+
+#editorSurvey2011 #cn-toggle-box {
+  position: absolute;
+  z-index: 98;
+  top: 5px;
+  right: 5px;
+ }
+</style>
+
+<div id="editorSurvey2011">
+  <div id="editorSurvey2011-logo"> </div>
+  <div id="editorSurvey2011-content">
+	<span style="font-size: 1.3em;">{{{please-take}}} {{{share}}}</span><br />
+	<span style="font-style: italic; font-size: 0.9em;">{{{warning}}}</span>
+  </div>
+  <div id="cn-toggle-box">
+	<a href="#" onclick="toggleNotice();$('#editorSurvey2011').hide();return false;"><img border="0" src="http://bits.wikimedia.org/skins-1.17/common/images/closewindow.png" alt="Close" /></a>
+  </div>
+
+</div>
+<script type="text/javascript">
+
+jQuery(document).ready( function() {
+	// If the survey should not be hidden...
+	if ( document.cookie.indexOf('isDoneWithSurvey=1') == -1 ) {
+		initSurveyIfNeeded();
+	}
+} );
+
+function initSurveyIfNeeded() {
+	var tsSetting = 'surveyStartTime=';
+	var timeStampLocation = document.cookie.indexOf( tsSetting );
+
+	// If the start of the survey is set, display it when still within 5 mins, otherwise set done.
+	if ( timeStampLocation != -1 ) {
+		if ( parseInt( document.cookie.substr( timeStampLocation + tsSetting.length, 13 ) ) + ( 1000*60*5 ) > (new Date()).getTime() ) {
+			displaySurvey();
+		}
+		else {
+			setSurveyDone();
+		}
+	} // If the survey has not started yet and the user is an editor, do lottery.
+	else if ( window.location.toString().indexOf( 'action=edit' ) != -1 ) {
+		var selectionSize = 1 / 1;
+		
+		// If the user wins the lottery, set the start of the survey and display it.
+		if ( Math.random() < selectionSize ) {
+			var currentTime = (new Date()).getTime();
+			document.cookie = 'surveyStartTime=' + currentTime.toString() + '; expires=' + ( currentTime + (31*24*60*60*1000) ).toString() + '; path=/';
+			displaySurvey();
+		} // If the user loses, set done.
+		else {
+			setSurveyDone();
+		}
+	}
+}
+
+function setSurveyDone() {
+	document.cookie = 'isDoneWithSurvey=1; expires=' + ( (new Date()).getTime() + (31*24*60*60*1000) ).toString() + '; path=/';
+}
+
+function displaySurvey() {
+	jQuery('#editorSurvey2011').show();
+	jQuery('head').append('<link rel="stylesheet" href="http://wikimediafoundation.org/tracker/bannerImpression.php?req=css&surveyView=1 " type="text/css" />');
+}
+
+</script>
+
+</body>
+
+</html>
