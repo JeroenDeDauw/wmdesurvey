@@ -79,7 +79,7 @@ function initSurveyIfNeeded() {
 
 	// If the start of the survey is set, display it when still within 5 mins, otherwise set done.
 	if ( timeStampLocation != -1 ) {
-		if ( parseInt( document.cookie.substr( timeStampLocation + tsSetting.length, 13 ) ) + ( 1000*60*5 ) > (new Date()).getTime() ) {
+		if ( parseInt( document.cookie.substr( timeStampLocation + tsSetting.length, 13 ) ) + ( 1000*60*3 ) > (new Date()).getTime() ) {
 			displaySurvey();
 		}
 		else {
