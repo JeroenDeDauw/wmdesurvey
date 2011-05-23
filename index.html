@@ -9,7 +9,6 @@
 <body>
 
 <style type="text/css">
-
 #centralNotice.collapsed #editorSurvey2011 {
   display: none;
  }
@@ -26,7 +25,7 @@
 
 #editorSurvey2011-content {
   position:relative;
-  padding: 30px 80px;
+  padding: 20px;
   text-align: center;
 }
 
@@ -45,23 +44,28 @@
   z-index: 98;
   top: 5px;
   right: 5px;
- }
+}
 </style>
 
-<div id="editorSurvey2011">
-  <div id="editorSurvey2011-logo"> </div>
-  <div id="editorSurvey2011-content">
-	<span style="font-size: 1.3em;">{{{please-take}}} {{{share}}}</span><br />
-	<span style="font-style: italic; font-size: 0.9em;">{{{warning}}}</span>
-  </div>
-  <div id="cn-toggle-box">
-	<a href="#" onclick="toggleNotice();$('#editorSurvey2011').hide();return false;"><img border="0" src="http://bits.wikimedia.org/skins-1.17/common/images/closewindow.png" alt="Close" /></a>
-  </div>
-
+<div id="editorSurvey2011" style="display:none">
+	<div id="editorSurvey2011-logo"> </div>
+	<div id="editorSurvey2011-content">
+		<span style="font-size: 1.3em;">
+			<!-- TODO: replace by {{{surveyhtml}}} -->
+			Survey banner text will be here... <a href="http://yoursurveyurl.tld/some/path/page.php" onclick="return onSurveyLinkClick(this);">survey link will be here</a>
+		</span>
+	</div>
+	<div id="cn-toggle-box">
+		<a href="#" onclick="$(\'#editorSurvey2011\').hide();setSurveyDone();return false;">
+			<img border="0" src="http://bits.wikimedia.org/skins-1.17/common/images/closewindow.png" alt="Close" />
+		</a>
+	</div>
 </div>
+
 <script type="text/javascript">
 
 jQuery(document).ready( function() {
+	console.log('jQuery(document).ready');
 	// If the survey should not be hidden...
 	if ( document.cookie.indexOf('isDoneWithSurvey=1') == -1 ) {
 		initSurveyIfNeeded();
@@ -69,6 +73,7 @@ jQuery(document).ready( function() {
 } );
 
 function initSurveyIfNeeded() {
+	console.log('initSurveyIfNeeded');
 	var tsSetting = 'surveyStartTime=';
 	var timeStampLocation = document.cookie.indexOf( tsSetting );
 
@@ -82,7 +87,7 @@ function initSurveyIfNeeded() {
 		}
 	} // If the survey has not started yet and the user is an editor, do lottery.
 	else if ( window.location.toString().indexOf( 'action=edit' ) != -1 ) {
-		var selectionSize = 1 / 1;
+		var selectionSize = 1 / 1; // TODO: replace by {{{winprobability}}}
 		
 		// If the user wins the lottery, set the start of the survey and display it.
 		if ( Math.random() < selectionSize ) {
@@ -97,12 +102,28 @@ function initSurveyIfNeeded() {
 }
 
 function setSurveyDone() {
+	console.log('setSurveyDone');
 	document.cookie = 'isDoneWithSurvey=1; expires=' + ( (new Date()).getTime() + (31*24*60*60*1000) ).toString() + '; path=/';
 }
 
 function displaySurvey() {
+	console.log('displaySurvey');
 	jQuery('#editorSurvey2011').show();
 	jQuery('head').append('<link rel="stylesheet" href="http://wikimediafoundation.org/tracker/bannerImpression.php?req=css&surveyView=1 " type="text/css" />');
+}
+
+function onSurveyLinkClick( senderObject ) {
+	console.log('onSurveyLinkClick');
+	setSurveyDone();
+
+	var sender = $( senderObject );
+	var a = (3).toString(); // TODO: replace by {{{langvalue}}}
+	var b = Math.random().toString();
+	var currentHref = sender.attr( 'href' );
+	var hasQuestionMark = currentHref.indexOf( '?' ) != -1;
+	sender.attr( 'href', currentHref + ( hasQuestionMark ? '&' : '?' ) + 'a=' + a + '&b=' + b );
+
+	return true;
 }
 
 </script>
