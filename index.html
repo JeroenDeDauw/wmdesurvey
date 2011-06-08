@@ -50,13 +50,17 @@
 <div id="editorSurvey2011" style="display:none">
 	<div id="editorSurvey2011-logo"> </div>
 	<div id="editorSurvey2011-content">
-		<span style="font-size: 1.3em;">
-			<!-- TODO: replace by {{{surveyhtml}}} -->
-			Survey banner text will be here... <a href="http://yoursurveyurl.tld/some/path/page.php" onclick="return onSurveyLinkClick(this);">survey link will be here</a>
+		<!-- TODO: replace by localized {{{BannerHtml}}} -->
+		<span style="font-size: 1em;line-height: 1.5em;">
+			<a onclick="return onSurveyLinkClick(this);" target="_blank" href="http://survey.wikipediaresearch.org/?a=3&b=">
+				<b>How satisfied are you with Wikipedia? <u>Your</u> feedback is important!</b>
+				<br/>As a thank-you you get a chance of winning a Wikipedia T-shirt.
+				<br/>Click here to participate in the survey!
+			</a>
 		</span>
 	</div>
 	<div id="cn-toggle-box">
-		<a href="#" onclick="$(\'#editorSurvey2011\').hide();setSurveyDone();return false;">
+		<a href="#" onclick="$(\'#editorSurvey2011\').hide();setSurveyStatus(constDone);return false;">
 			<img border="0" src="http://bits.wikimedia.org/skins-1.17/common/images/closewindow.png" alt="Close" />
 		</a>
 	</div>
@@ -64,66 +68,102 @@
 
 <script type="text/javascript">
 
-jQuery(document).ready( function() {
-	console.log('jQuery(document).ready');
+const constSamplingRate = 1 / 1; <!-- TODO: replace by localized {{{SamplingRate}}} -->
+const constDisplayTimeSpan = 3 ; <!-- TODO: replace by localized {{{DisplayTimeSpan}}} -->
+ 
+const constDone = 'done';
+const constTodo = 'todo';
+ 
+jQuery(document).ready( function() 
+{
 	// If the survey should not be hidden...
-	if ( document.cookie.indexOf('isDoneWithSurvey=1') == -1 ) {
+	if ( document.cookie.indexOf('surveyStatus=' + constDone) == -1 ) 
+	{
 		initSurveyIfNeeded();
 	}
 } );
-
-function initSurveyIfNeeded() {
-	console.log('initSurveyIfNeeded');
+ 
+function initSurveyIfNeeded() 
+{
 	var tsSetting = 'surveyStartTime=';
 	var timeStampLocation = document.cookie.indexOf( tsSetting );
-
-	// If the start of the survey is set, display it when still within 5 mins, otherwise set done.
-	if ( timeStampLocation != -1 ) {
-		if ( parseInt( document.cookie.substr( timeStampLocation + tsSetting.length, 13 ) ) + ( 1000*60*3 ) > (new Date()).getTime() ) {
-			displaySurvey();
+ 
+	// If the survey is not set at all
+	if ( document.cookie.indexOf('surveyStatus=' + constTodo) == -1 ) 
+	{
+		// If the user is an editor, do lottery.
+		if ( window.location.toString().indexOf( 'action=edit' ) != -1 ) 
+		{
+			var selectionSize = constSamplingRate ; 
+			// If the user wins the lottery, set DisplayTodo
+			if ( Math.random() < selectionSize ) 
+			{
+				setSurveyStatus(constTodo);
+			} 
+			// If the user loses, set done.
+			else 
+			{
+				setSurveyStatus(constDone);
+			}
 		}
-		else {
-			setSurveyDone();
-		}
-	} // If the survey has not started yet and the user is an editor, do lottery.
-	else if ( window.location.toString().indexOf( 'action=edit' ) != -1 ) {
-		var selectionSize = 1 / 1; // TODO: replace by {{{winprobability}}}
-		
-		// If the user wins the lottery, set the start of the survey and display it.
-		if ( Math.random() < selectionSize ) {
-			var currentTime = (new Date()).getTime();
-			document.cookie = 'surveyStartTime=' + currentTime.toString() + '; expires=' + ( currentTime + (31*24*60*60*1000) ).toString() + '; path=/';
+		// (If the user is not an editor, do nothing.)
+	}
+	else 
+	{
+		// If the start of the survey is set, display it when still within 5 mins, otherwise set done.
+		if ( timeStampLocation != -1 ) 
+		{
+				if ( parseInt( document.cookie.substr( timeStampLocation + tsSetting.length, 13 ) ) + ( 1000*60* constDisplayTimeSpan ) > (new Date()).getTime() ) 
+				{
+					displaySurvey();
+				}
+				else 
+				{
+					setSurveyStatus(constDone);
+				}
+		}	
+		// If the start of the survey is not set, check for the right page (first page that is not an "action" page)
+		else if ( window.location.toString().indexOf( 'action=' ) == -1 ) 
+		{
+			var date = new Date();
+			var currentTime = date.getTime().toString();
+			date.setTime(date.getTime()+(31*24*60*60*1000));
+			var expires = date.toUTCString();
+			document.cookie = 'surveyStartTime=' + currentTime + '; expires=' + expires + '; path=/';			
+			// Notice for WMF reviewer: Would it possible to use the WMF tracker?
+			jQuery('head').append('<link rel="stylesheet" href="http://wikimediafoundation.org/tracker/bannerImpression.php?req=css&surveyView=1" type="text/css" />');
 			displaySurvey();
-		} // If the user loses, set done.
-		else {
-			setSurveyDone();
 		}
 	}
 }
-
-function setSurveyDone() {
-	console.log('setSurveyDone');
-	document.cookie = 'isDoneWithSurvey=1; expires=' + ( (new Date()).getTime() + (31*24*60*60*1000) ).toString() + '; path=/';
+ 
+function setSurveyStatus(status) 
+{
+	var date = new Date();
+	date.setTime(date.getTime()+(31*24*60*60*1000));
+	var expires = date.toUTCString();
+	document.cookie = 'surveyStatus=' + status.toString() + '; expires=' + expires + '; path=/';
 }
 
-function displaySurvey() {
-	console.log('displaySurvey');
+function displaySurvey() 
+{
 	jQuery('#editorSurvey2011').show();
-	jQuery('head').append('<link rel="stylesheet" href="http://wikimediafoundation.org/tracker/bannerImpression.php?req=css&surveyView=1 " type="text/css" />');
 }
 
-function onSurveyLinkClick( senderObject ) {
-	console.log('onSurveyLinkClick');
-	setSurveyDone();
+var isFirstClick = true;
 
-	var sender = $( senderObject );
-	var a = (3).toString(); // TODO: replace by {{{langvalue}}}
-	var b = Math.random().toString();
-	var currentHref = sender.attr( 'href' );
-	var hasQuestionMark = currentHref.indexOf( '?' ) != -1;
-	sender.attr( 'href', currentHref + ( hasQuestionMark ? '&' : '?' ) + 'a=' + a + '&b=' + b );
+function onSurveyLinkClick( senderObject ) 
+{
+	if ( isFirstClick ) 
+	{
+		setSurveyStatus(constDone);
 
-	return true;
+		var sender = $( senderObject );
+		sender.attr( 'href', sender.attr( 'href' ) + Math.random().toString().substring(2));
+		
+		isFirstClick = false;
+	}
+ 	return true;
 }
 
 </script>
