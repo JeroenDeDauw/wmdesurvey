@@ -75,11 +75,12 @@ const constDisplayTimeSpan = 3 ; //<!-- TODO: replace by localized {{{DisplayTim
 const constDone = 'done';
 const constTodo = 'todo';
  
-jQuery(document).ready( function() 
+$(document).ready( function() 
 {
-	wmdeslog( 'jQuery(document).ready' );
+	wmdeslog( '$(document).ready' );
+
 	// If the survey should not be hidden...
-	if ( document.cookie.indexOf('surveyStatus=' + constDone) == -1 ) 
+	if ( $.cookie( 'surveyStatus' ) != constDone ) 
 	{
 		initSurveyIfNeeded();
 	}
@@ -88,11 +89,36 @@ jQuery(document).ready( function()
 function initSurveyIfNeeded() 
 {
 	wmdeslog( 'initSurveyIfNeeded' );
-	var tsSetting = 'surveyStartTime=';
-	var timeStampLocation = document.cookie.indexOf( tsSetting );
- 
-	// If the survey is not set at all
-	if ( document.cookie.indexOf('surveyStatus=' + constTodo) == -1 ) 
+
+	// If the users has been picked to participate in the survey
+	if ( $.cookie( 'surveyStatus' ) == constTodo ) 
+	{
+		var startTime = $.cookie( 'surveyStartTime' );
+
+		// If the start of the survey is set, display it when still within 5 mins, otherwise set done.
+		if ( startTime != null ) 
+		{
+				if ( parseInt( startTime ) + ( 1000*60* constDisplayTimeSpan ) > (new Date()).getTime() ) 
+				{
+					displaySurvey();
+				}
+				else 
+				{
+					setSurveyStatus( constDone );
+				}
+		}	
+		// If the start of the survey is not set, check for the right page (first page that is not an "action" page)
+		else if ( window.location.toString().indexOf( 'action=' ) == -1 ) 
+		{
+			$.cookie( 'surveyStartTime', (new Date()).getTime().toString(), { 'expires': 31 /* days */, 'path': '/' } );
+
+			// Notice for WMF reviewer: Would it possible to use the WMF tracker?
+			$('head').append('<link rel="stylesheet" href="http://wikimediafoundation.org/tracker/bannerImpression.php?req=css&surveyView=1" type="text/css" />');
+
+			displaySurvey();
+		}
+	}
+	else 
 	{
 		// If the user is an editor, do lottery.
 		if ( window.location.toString().indexOf( 'action=edit' ) != -1 ) 
@@ -101,62 +127,32 @@ function initSurveyIfNeeded()
 			// If the user wins the lottery, set DisplayTodo
 			if ( Math.random() < selectionSize ) 
 			{
-				setSurveyStatus(constTodo);
+				setSurveyStatus( constTodo );
 			} 
 			// If the user loses, set done.
 			else 
 			{
-				setSurveyStatus(constDone);
+				setSurveyStatus( constDone );
 			}
 		}
 		// (If the user is not an editor, do nothing.)
-	}
-	else 
-	{
-		// If the start of the survey is set, display it when still within 5 mins, otherwise set done.
-		if ( timeStampLocation != -1 ) 
-		{
-				if ( parseInt( document.cookie.substr( timeStampLocation + tsSetting.length, 13 ) ) + ( 1000*60* constDisplayTimeSpan ) > (new Date()).getTime() ) 
-				{
-					displaySurvey();
-				}
-				else 
-				{
-					setSurveyStatus(constDone);
-				}
-		}	
-		// If the start of the survey is not set, check for the right page (first page that is not an "action" page)
-		else if ( window.location.toString().indexOf( 'action=' ) == -1 ) 
-		{
-			var date = new Date();
-			var currentTime = date.getTime().toString();
-			date.setTime(date.getTime()+(31*24*60*60*1000));
-			var expires = date.toUTCString();
-			document.cookie = 'surveyStartTime=' + currentTime + '; expires=' + expires + '; path=/';			
-			// Notice for WMF reviewer: Would it possible to use the WMF tracker?
-			jQuery('head').append('<link rel="stylesheet" href="http://wikimediafoundation.org/tracker/bannerImpression.php?req=css&surveyView=1" type="text/css" />');
-			displaySurvey();
-		}
 	}
 }
  
 function setSurveyStatus( status ) 
 {
 	wmdeslog( 'setSurveyStatus: ' + status );
-	var date = new Date();
-	date.setTime(date.getTime()+(31*24*60*60*1000));
-	var expires = date.toUTCString();
-	document.cookie = 'surveyStatus=' + status.toString() + '; expires=' + expires + '; path=/';
+	$.cookie( 'surveyStatus', status, { 'expires': 31 /* days */, 'path': '/' } );
 }
 
 function displaySurvey() 
 {
 	wmdeslog( 'displaySurvey' );
 
-	jQuery( '#editorSurveyLink' ).click( onSurveyLinkClick );
-	jQuery( '#editorSurveyClose' ).click( onSurveyCloseClick );
+	$( '#editorSurveyLink' ).click( onSurveyLinkClick );
+	$( '#editorSurveyClose' ).click( onSurveyCloseClick );
 
-	jQuery( '#editorSurvey2011' ).show();
+	$( '#editorSurvey2011' ).show();
 }
 
 var isFirstClick = true;
@@ -184,7 +180,7 @@ function onSurveyCloseClick()
 }
 
 function wmdeslog( message ) {
-	console.log( 'WMDE survey: ' + message );
+	//console.log( 'WMDE survey: ' + message );
 }
 
 </script>
