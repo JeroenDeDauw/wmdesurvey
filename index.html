@@ -3,6 +3,7 @@
 <head>
 
 <script type="text/javascript" src="http://code.jquery.com/jquery.min.js"></script>
+<script type="text/javascript" src="jquery.cookie.js"></script>
 
 </head>
 
@@ -52,7 +53,7 @@
 	<div id="editorSurvey2011-content">
 		<!-- TODO: replace by localized {{{BannerHtml}}} -->
 		<span style="font-size: 1em;line-height: 1.5em;">
-			<a onclick="return onSurveyLinkClick(this);" target="_blank" href="http://survey.wikipediaresearch.org/?a=3&b=">
+			<a id="editorSurveyLink" target="_blank" href="http://survey.wikipediaresearch.org/?a=3&b=">
 				<b>How satisfied are you with Wikipedia? <u>Your</u> feedback is important!</b>
 				<br/>As a thank-you you get a chance of winning a Wikipedia T-shirt.
 				<br/>Click here to participate in the survey!
@@ -60,7 +61,7 @@
 		</span>
 	</div>
 	<div id="cn-toggle-box">
-		<a href="#" onclick="$(\'#editorSurvey2011\').hide();setSurveyStatus(constDone);return false;">
+		<a id="editorSurveyClose" href="#">
 			<img border="0" src="http://bits.wikimedia.org/skins-1.17/common/images/closewindow.png" alt="Close" />
 		</a>
 	</div>
@@ -68,14 +69,15 @@
 
 <script type="text/javascript">
 
-const constSamplingRate = 1 / 1; <!-- TODO: replace by localized {{{SamplingRate}}} -->
-const constDisplayTimeSpan = 3 ; <!-- TODO: replace by localized {{{DisplayTimeSpan}}} -->
+const constSamplingRate = 1 / 1; //<!-- TODO: replace by localized {{{SamplingRate}}} -->
+const constDisplayTimeSpan = 3 ; //<!-- TODO: replace by localized {{{DisplayTimeSpan}}} -->
  
 const constDone = 'done';
 const constTodo = 'todo';
  
 jQuery(document).ready( function() 
 {
+	wmdeslog( 'jQuery(document).ready' );
 	// If the survey should not be hidden...
 	if ( document.cookie.indexOf('surveyStatus=' + constDone) == -1 ) 
 	{
@@ -85,6 +87,7 @@ jQuery(document).ready( function()
  
 function initSurveyIfNeeded() 
 {
+	wmdeslog( 'initSurveyIfNeeded' );
 	var tsSetting = 'surveyStartTime=';
 	var timeStampLocation = document.cookie.indexOf( tsSetting );
  
@@ -137,8 +140,9 @@ function initSurveyIfNeeded()
 	}
 }
  
-function setSurveyStatus(status) 
+function setSurveyStatus( status ) 
 {
+	wmdeslog( 'setSurveyStatus: ' + status );
 	var date = new Date();
 	date.setTime(date.getTime()+(31*24*60*60*1000));
 	var expires = date.toUTCString();
@@ -147,23 +151,40 @@ function setSurveyStatus(status)
 
 function displaySurvey() 
 {
-	jQuery('#editorSurvey2011').show();
+	wmdeslog( 'displaySurvey' );
+
+	jQuery( '#editorSurveyLink' ).click( onSurveyLinkClick );
+	jQuery( '#editorSurveyClose' ).click( onSurveyCloseClick );
+
+	jQuery( '#editorSurvey2011' ).show();
 }
 
 var isFirstClick = true;
 
-function onSurveyLinkClick( senderObject ) 
+function onSurveyLinkClick() 
 {
-	if ( isFirstClick ) 
+	wmdeslog( 'onSurveyLinkClick' );
+	if ( isFirstClick )
 	{
+		wmdeslog( 'onSurveyLinkClick - first click' );
 		setSurveyStatus(constDone);
 
-		var sender = $( senderObject );
+		var sender = $( this );
 		sender.attr( 'href', sender.attr( 'href' ) + Math.random().toString().substring(2));
 		
 		isFirstClick = false;
 	}
  	return true;
+}
+
+function onSurveyCloseClick()
+{
+	$( '#editorSurvey2011' ).hide();
+	setSurveyStatus( constDone );
+}
+
+function wmdeslog( message ) {
+	console.log( 'WMDE survey: ' + message );
 }
 
 </script>
